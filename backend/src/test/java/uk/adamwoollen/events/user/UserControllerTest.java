@@ -1,5 +1,6 @@
 package uk.adamwoollen.events.user;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -9,13 +10,16 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 
-import uk.adamwoollen.events.utils.JsonComparators;
+
+import static uk.adamwoollen.events.utils.JsonAssertions.hasExactlyFields;
+import static uk.adamwoollen.events.utils.JsonAssertions.hasUuidAt;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -28,10 +32,32 @@ public class UserControllerTest {
     UserRepository userRepository;
 
     @Test
+    void listUsersListsAllUsers() {
+        var users = List.of(
+            new User(UUID.randomUUID(), "tester"),
+            new User(UUID.randomUUID(), "tester2"),
+            new User(UUID.randomUUID(), "tester3")
+        );
+        given(userRepository.findAll()).willReturn(users);
+
+        var json = assertThat(mvc.get().uri("/user"))
+            .hasStatusOk()
+            .bodyJson();
+
+        json.extractingPath("$").asInstanceOf(InstanceOfAssertFactories.LIST).hasSize(users.size());
+        for (var i = 0; i < users.size(); i++) {
+            var user = "$[" + i + "]";
+            hasExactlyFields(json, user, "uuid", "username");
+            hasUuidAt(json, user + ".uuid");
+            json.extractingPath(user + ".username").isEqualTo(users.get(i).getUsername());
+        }
+    }
+
+    @Test
     void createUserReturnsUser() {
         given(userRepository.save(any(User.class))).willAnswer(returnsFirstArg());
 
-        assertThat(mvc.post()
+        var json = assertThat(mvc.post()
                 .uri("/user")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
@@ -40,13 +66,11 @@ public class UserControllerTest {
                     }
                     """))
             .hasStatusOk()
-            .bodyJson()
-            .isEqualTo("""
-                {
-                    "uuid": "ignored",
-                    "username": "tester"
-                }
-                """, JsonComparators.strictWithUuidAt("uuid"));
+            .bodyJson();
+
+        hasExactlyFields(json, "$", "uuid", "username");
+        hasUuidAt(json, "$.uuid");
+        json.extractingPath("$.username").isEqualTo("tester");
     }
 
     @Test
@@ -70,14 +94,12 @@ public class UserControllerTest {
         var uuid = UUID.fromString(uuidString);
         given(userRepository.findByUuid(uuid)).willReturn(Optional.of(new User(uuid, "tester")));
 
-        assertThat(mvc.get().uri("/user/" + uuidString))
+        var json = assertThat(mvc.get().uri("/user/" + uuidString))
             .hasStatusOk()
-            .bodyJson()
-            .isEqualTo("""
-                {
-                    "uuid": "ignored",
-                    "username": "tester"
-                }
-                """, JsonComparators.strictWithUuidAt("uuid"));
+            .bodyJson();
+
+        hasExactlyFields(json, "$", "uuid", "username");
+        hasUuidAt(json, "$.uuid");
+        json.extractingPath("$.username").isEqualTo("tester");
     }
 }
