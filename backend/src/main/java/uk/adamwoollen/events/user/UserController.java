@@ -24,8 +24,8 @@ public class UserController {
     }
 
     @GetMapping("/{userUuid}")
-    public UserResponse getUser(@PathVariable String userUuid) {
-        return userRepository.findByUuid(UUID.fromString(userUuid))
+    public UserResponse getUser(@PathVariable UUID userUuid) {
+        return userRepository.findByUuid(userUuid)
             .map(UserResponse::from)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
