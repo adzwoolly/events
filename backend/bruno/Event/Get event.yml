@@ -1,0 +1,19 @@
+info:
+  name: Get event
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: http://events.localhost:8080/event/:eventUuid
+  params:
+    - name: eventUuid
+      value: 85e80aa5-0c55-4d7b-8532-d775524695c0
+      type: path
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true
