@@ -11,22 +11,22 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import uk.adamwoollen.events.user.UserRepository;
+import uk.adamwoollen.events.user.UserService;
 
 @RestController
 @RequestMapping("/event")
 public class EventController {
     private final EventRepository eventRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
 
-    public EventController(EventRepository eventRepository, UserRepository userRepository) {
+    public EventController(EventRepository eventRepository, UserService userService) {
         this.eventRepository = eventRepository;
-        this.userRepository = userRepository;
+        this.userService = userService;
     }
 
     @PostMapping
     public EventResponse createEvent(@RequestBody EventRequest request) {
-        var organiser = userRepository.findByUuid(request.organiserUuid())
+        var organiser = userService.findByUuid(request.organiserUuid())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Organiser not found"));
         var event = eventRepository.save(new Event(request.title(), request.description(), organiser));
         return EventResponse.from(event);
