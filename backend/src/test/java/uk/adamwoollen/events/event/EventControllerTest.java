@@ -21,6 +21,7 @@ import org.springframework.test.web.servlet.assertj.MockMvcTester;
 
 import uk.adamwoollen.events.user.User;
 import uk.adamwoollen.events.user.UserRepository;
+import uk.adamwoollen.events.user.exception.InvalidUsernameException;
 
 @WebMvcTest(EventController.class)
 public class EventControllerTest {
@@ -32,7 +33,7 @@ public class EventControllerTest {
     User user;
 
     @BeforeEach
-    void createUser() {
+    void createUser() throws InvalidUsernameException {
         user = new User("tester");
     }
 
