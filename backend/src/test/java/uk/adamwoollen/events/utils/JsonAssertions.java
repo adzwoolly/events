@@ -2,6 +2,8 @@ package uk.adamwoollen.events.utils;
 
 import java.util.UUID;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.json.AbstractJsonContentAssert;
 
 public final class JsonAssertions {
@@ -21,5 +23,12 @@ public final class JsonAssertions {
 
     public static void hasUuidAt(AbstractJsonContentAssert<?> json, String path) {
         json.extractingPath(path).asString().satisfies(UUID::fromString);
+    }
+
+    public static void hasErrorBody(AbstractJsonContentAssert<?> json, HttpStatus status, String message) {
+        hasExactlyFields(json, "$", "status", "error", "message");
+        json.extractingPath("$.status").asInstanceOf(InstanceOfAssertFactories.INTEGER).isEqualTo(status.value());
+        json.extractingPath("$.error").isEqualTo(status.getReasonPhrase());
+        json.extractingPath("$.message").isEqualTo(message);
     }
 }

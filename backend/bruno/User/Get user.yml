@@ -5,9 +5,9 @@ info:
 
 http:
   method: GET
-  url: http://events.localhost:8080/user/:userUuid
+  url: http://events.localhost:8080/user/:uuidOrUsername
   params:
-    - name: userUuid
+    - name: uuidOrUsername
       value: 723a1a2c-3a2d-4ab0-871a-6fb10716d325
       type: path
 
