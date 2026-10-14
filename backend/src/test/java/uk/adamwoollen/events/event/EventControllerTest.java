@@ -20,7 +20,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 
 import uk.adamwoollen.events.user.User;
-import uk.adamwoollen.events.user.UserRepository;
+import uk.adamwoollen.events.user.UserService;
 import uk.adamwoollen.events.user.exception.InvalidUsernameException;
 
 @WebMvcTest(EventController.class)
@@ -28,7 +28,7 @@ public class EventControllerTest {
     @Autowired MockMvcTester mvc;
 
     @MockitoBean EventRepository eventRepository;
-    @MockitoBean UserRepository userRepository;
+    @MockitoBean UserService userService;
 
     User user;
 
@@ -72,7 +72,7 @@ public class EventControllerTest {
 
     @Test
     void createEventReturnsEvent() {
-        given(userRepository.findByUuid(user.getUuid())).willReturn(Optional.of(user));
+        given(userService.findByUuid(user.getUuid())).willReturn(Optional.of(user));
         given(eventRepository.save(any(Event.class))).willAnswer(returnsFirstArg());
 
         var json = assertThat(mvc.post()
@@ -99,7 +99,7 @@ public class EventControllerTest {
     @Test
     void createEventWithUnknownOrganiserReturnsBadRequest() {
         var organiserUuid = UUID.randomUUID();
-        given(userRepository.findByUuid(organiserUuid)).willReturn(Optional.empty());
+        given(userService.findByUuid(organiserUuid)).willReturn(Optional.empty());
 
         assertThat(mvc.post()
                 .uri("/event")
