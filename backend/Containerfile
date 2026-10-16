@@ -1,0 +1,20 @@
+FROM docker.io/library/eclipse-temurin:25-jdk AS build
+WORKDIR /workspace
+
+# Fetch the Gradle distribution first so it is cached independently of source changes
+COPY gradlew ./
+COPY gradle ./gradle
+RUN ./gradlew --version
+
+COPY build.gradle.kts settings.gradle.kts ./
+COPY src ./src
+RUN ./gradlew bootJar -x test --no-daemon \
+    && mv build/libs/$(ls build/libs | grep -v -- '-plain') app.jar
+
+FROM docker.io/library/eclipse-temurin:25-jre
+WORKDIR /app
+RUN useradd --system --no-create-home app
+COPY --from=build /workspace/app.jar app.jar
+USER app
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]

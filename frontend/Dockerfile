@@ -1,22 +1,24 @@
-FROM node:24-alpine AS development-dependencies-env
-COPY . /app
+FROM node:24-alpine AS base
+RUN corepack enable
 WORKDIR /app
-RUN npm ci
 
-FROM node:24-alpine AS production-dependencies-env
-COPY ./package.json package-lock.json /app/
-WORKDIR /app
-RUN npm ci --omit=dev
+FROM base AS development-dependencies-env
+COPY ./package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 
-FROM node:24-alpine AS build-env
-COPY . /app/
-COPY --from=development-dependencies-env /app/node_modules /app/node_modules
-WORKDIR /app
-RUN npm run build
+FROM base AS production-dependencies-env
+COPY ./package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile --prod
+
+FROM base AS build-env
+COPY . .
+COPY --from=development-dependencies-env /app/node_modules ./node_modules
+RUN pnpm run build
 
 FROM node:24-alpine
-COPY ./package.json package-lock.json /app/
-COPY --from=production-dependencies-env /app/node_modules /app/node_modules
-COPY --from=build-env /app/build /app/build
 WORKDIR /app
-CMD ["npm", "run", "start"]
+COPY --chown=node:node ./package.json ./
+COPY --from=production-dependencies-env --chown=node:node /app/node_modules ./node_modules
+COPY --from=build-env --chown=node:node /app/build ./build
+USER node
+CMD ["node_modules/.bin/react-router-serve", "./build/server/index.js"]

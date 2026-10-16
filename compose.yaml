@@ -26,6 +26,33 @@ services:
       interval: 5s
       retries: 10
 
+  backend:
+    profiles: ["app"]
+    build:
+      context: ./backend
+      dockerfile: Containerfile
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-events}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-events}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_DATA_REDIS_HOST: redis
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  frontend:
+    profiles: ["app"]
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    init: true
+    ports:
+      - "3000:3000"
+
 volumes:
   pgdata:
   redisdata:
