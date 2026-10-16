@@ -1,0 +1,38 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Debug Backend",
+            "request": "launch",
+            "mainClass": "uk.adamwoollen.events.EventsApplication",
+            "projectName": "backend",
+            "cwd": "${workspaceFolder}/backend",
+            "preLaunchTask": "compose: up"
+        },
+        {
+            "type": "firefox",
+            "name": "Debug Frontend",
+            "request": "launch",
+            "url": "http://events.localhost:5173",
+            "webRoot": "${workspaceFolder}/frontend",
+            "preLaunchTask": "frontend: dev"
+        },
+        {
+            "type": "java",
+            "name": "Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Debug Full Stack",
+            "configurations": ["Debug Backend", "Debug Frontend"],
+            "stopAll": true
+        }
+    ]
+}
